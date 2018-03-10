@@ -1,0 +1,10 @@
+[package]
+name = "gmlpp"
+version = "0.1.0"
+authors = ["Cameron Eldridge <cameldridge+git@gmail.com>"]
+
+[dependencies]
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+notify = "4.0.0"
