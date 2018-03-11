@@ -1,10 +1,7 @@
-use std::path::Path;
 use std::fs::File;
-use std::time::Duration;
-use std::sync::mpsc::channel;
+use std::path::Path;
 
 use serde_json;
-use notify::{RecommendedWatcher, Watcher, RecursiveMode, DebouncedEvent};
 
 use error::Error;
 use super::parent_project::ParentProject;
@@ -46,25 +43,9 @@ impl YYP {
             .map_err(From::from)
     }
 
-    /// Watches the project files, compiling the gmlpp files to gml
-    pub fn watch(self) -> Result<(), Error> {
-        let (tx, rx) = channel();
-        let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(2))?;
-        watcher.watch(Path::new(&self.project_file).parent().unwrap(), RecursiveMode::Recursive)?;
-        loop {
-            match rx.recv() {
-                Ok(event) => self.handle(event)?,
-                Err(_) => break,
-            }
-        }
-        Ok(())
-    }
-
-    /// Handles a notification received from the watcher
-    fn handle(&self, event: DebouncedEvent) -> Result<(), Error> {
-        match event {
-            _ => Ok(())
-        }
+    /// The directory this project file is in
+    pub fn directory(&self) -> &Path {
+        Path::new(&self.project_file).parent().unwrap()
     }
 }
 

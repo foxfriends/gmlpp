@@ -8,6 +8,7 @@ mod tokenizer;
 mod parser;
 mod ast;
 mod compiler;
+mod rewriter;
 mod error;
 
 use std::env;
@@ -21,5 +22,6 @@ fn run() -> Result<(), self::error::Error> {
     // TODO: might be nice to predict project file names if they are not supplied
     let project_file = args.into_iter().nth(1).ok_or(self::error::Error::ArgumentError)?;
     let project = self::project::YYP::new(project_file)?;
-    project.watch()
+    let compiler = self::compiler::Compiler::new(project);
+    compiler.watch()
 }
