@@ -4,11 +4,9 @@ extern crate serde_json;
 extern crate notify;
 
 mod project;
-mod tokenizer;
-mod parser;
-mod ast;
+mod gml;
+mod gmlpp;
 mod compiler;
-mod rewriter;
 mod error;
 
 use std::env;
@@ -23,5 +21,6 @@ fn run() -> Result<(), self::error::Error> {
     let project_file = args.into_iter().nth(1).ok_or(self::error::Error::ArgumentError)?;
     let project = self::project::YYP::new(project_file)?;
     let compiler = self::compiler::Compiler::new(project);
+    compiler.compile_all()?;
     compiler.watch()
 }

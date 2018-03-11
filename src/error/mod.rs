@@ -1,6 +1,7 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::path;
 
 use serde_json;
 use notify;
@@ -8,9 +9,17 @@ use notify;
 #[derive(Debug)]
 pub enum Error {
     ArgumentError,
+    NoProject,
+    MissingResource(String),
     IOError(io::Error),
     JSONError(serde_json::Error),
     NotifyError(notify::Error),
+}
+
+impl Error {
+    pub fn missing_resource<P: AsRef<path::Path>>(path: P) -> Self {
+        Error::MissingResource(format!("The resource is missing at path {:?}", path.as_ref()))
+    }
 }
 
 impl fmt::Display for Error {
@@ -24,6 +33,8 @@ impl error::Error for Error {
         use self::Error::*;
         match self {
             &ArgumentError => "Please supply the project file (.yyp)",
+            &NoProject => "The project file does not exist at the supplied path",
+            &MissingResource(ref message) => &message,
             &IOError(ref error) => error.description(),
             &JSONError(ref error) => error.description(),
             &NotifyError(ref error) => error.description(),
