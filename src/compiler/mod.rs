@@ -5,18 +5,18 @@ use std::sync::mpsc::channel;
 use notify::{RecommendedWatcher, Watcher, RecursiveMode, DebouncedEvent};
 
 use gmlpp::AST;
-use project::{YYP, Source};
+use project::{Project, Source};
 use error::Error;
 
 /// Performs compilation of `.gmlpp` files within a project
 #[derive(Clone, Debug)]
 pub struct Compiler {
-    project: YYP,
+    project: Project,
 }
 
 impl Compiler {
     /// Creates a new instance of the Compiler, linked to a project
-    pub fn new(project: YYP) -> Self {
+    pub fn new(project: Project) -> Self {
         Self{ project }
     }
 
@@ -37,12 +37,7 @@ impl Compiler {
     /// Handles a notification received from the watcher
     fn handle(&self, event: DebouncedEvent) -> Result<(), Error> {
         match event {
-            DebouncedEvent::Write(path) => {
-                for source in Source::from(path) {
-                    self.compile(source)?;
-                }
-                Ok(())
-            }
+            DebouncedEvent::Write(path) => self.compile(Source::from(path)),
             _ => Ok(()),
         }
     }
@@ -57,9 +52,11 @@ impl Compiler {
 
     /// Compiles a `.gmlpp` file to it's corresponding `.gml` file
     fn compile(&self, source: Source) -> Result<(), Error> {
-        for gmlpp in source.gmlpp() {
-            println!("{}{}", self.project.directory().to_str().unwrap(), gmlpp);
-            let file = File::open(format!("{}{}", self.project.directory().to_str().unwrap(), gmlpp))?;
+        println!("Compiling source: {:?}", source);
+        let mut path = self.project.directory();
+        path.push(source.gmlpp());
+        if path.exists() {
+            let file = File::open(path)?;
             let ast = AST::from_reader(file);
             let outfile = File::create(source.gml())?;
             // do compile

@@ -17,8 +17,8 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn missing_resource<P: AsRef<path::Path>>(path: P) -> Self {
-        Error::MissingResource(format!("The resource is missing at path {:?}", path.as_ref()))
+    pub fn missing_resource(path: &path::Path) -> Self {
+        Error::MissingResource(format!("The resource is missing at path {:?}", path))
     }
 }
 

@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 /// A `.gml` source file and it's corresponding `.gmlpp` and helper files if required
 #[derive(Clone, Debug)]
@@ -22,14 +22,13 @@ impl Source {
     }
 
     /// Determines the corresponding source files for a gml or gmlpp file
-    pub fn from<P: AsRef<Path>>(path: P) -> Self {
-        Source(path.as_ref().to_owned())
+    pub fn from(path: PathBuf) -> Self {
+        Source(path)
     }
 
     /// Adjusts all the paths of this source to the provided base path
-    pub fn resolved_to(self, mut path: PathBuf) -> Self {
-        path.push(self.0);
-        Source(path)
+    pub fn resolved_to(self, path: PathBuf) -> Self {
+        Source(path.push(self.0))
     }
 }
 

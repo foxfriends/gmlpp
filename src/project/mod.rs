@@ -6,7 +6,7 @@ mod project;
 mod parent_project;
 mod source;
 
-pub use self::project::YYP;
+pub use self::project::Project;
 pub use self::source::Source;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]

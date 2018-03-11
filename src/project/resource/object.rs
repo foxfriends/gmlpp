@@ -1,6 +1,6 @@
 use super::super::ID;
-use super::super::model::Model;
 use super::Event;
+use super::super::source::Source;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all="camelCase")]
@@ -27,4 +27,11 @@ pub struct Object {
     solid: bool,
     sprite_id: ID,
     visible: bool,
+}
+
+impl Object {
+    /// Returns the source files for this Object. One for each event.
+    pub fn sources(&self) -> Vec<Source> {
+        vec![]
+    }
 }

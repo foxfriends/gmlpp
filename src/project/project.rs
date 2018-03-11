@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use std::cell::RefCell;
 
@@ -14,7 +14,7 @@ use super::ID;
 
 /// Data representation of a `.yyp` file
 #[derive(Serialize, Deserialize, Clone, Debug)]
-struct Project {
+struct YYP {
     id: ID,
     #[serde(rename="modelName")]
     model_name: Model,
@@ -32,13 +32,13 @@ struct Project {
 
 /// A GameMaker project
 #[derive(Clone, Debug)]
-pub struct YYP {
+pub struct Project {
     project_file: String,
-    project: Project,
+    project: YYP,
     resources: RefCell<HashMap<ID, Resource>>,
 }
 
-impl YYP {
+impl Project {
     /// Loads a GameMaker Studio 2 project from a `.yyp` file
     pub fn new(project_file: String) -> Result<Self, Error> {
         let f = File::open(project_file.clone()).map_err(|_| Error::NoProject)?;
@@ -48,8 +48,8 @@ impl YYP {
     }
 
     /// The directory this project file is in
-    pub fn directory(&self) -> &Path {
-        Path::new(&self.project_file).parent().unwrap()
+    pub fn directory(&self) -> PathBuf {
+        Path::new(&self.project_file).parent().unwrap().to_owned()
     }
 
     /// Finds all the source files for all resources
