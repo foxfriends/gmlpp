@@ -1,174 +1,107 @@
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub enum Token {
-    // values
-    Identifier(String),
-    BinLiteral(String),
-    OctLiteral(String),
-    HexLiteral(String),
-    DecLiteral(String),
-    StrLiteral(String),
-    CharLiteral(String),
-    BoolLiteral(String),
-    UndefinedLiteral,
+use std::io::Read;
+
+mod token;
+
+pub use self::token::Token;
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum State {
+    Start,
 
     // comments
-    Comment,
-    DocComment,
-    BlockCommentStart,
-    BlockCommentEnd,
+    SlashSlash,
+    SlashSlashSlash,
+    SlashStar,
+    StarSlash,
 
-    // bitwise operators
-    And,
-    Or,
-    Xor,
-    Inv,
-    LShift,
-    RShift,
-    AndEqual,
-    OrEqual,
-    XorEqual,
-    LShiftEqual,
-    RShiftEqual,
+    // numbers
+    Zero,
+    ZeroX,
+    ZeroB,
+    Hex,
+    Bin,
+    Dec,
+    DecFloat,
+    DecE,
+    DecExp,
 
-    // boolean operators
-    BAnd,
-    BOr,
-    Bang,
+    // strings
+    Char,
+    Str,
+    StrSlash,
+    CharSlash,
 
     // arithmetic operators
-    Plus,
     Minus,
-    Star,
-    Slash,
-    Pct,
-    Exp,
+    Plus,
     PlusEqual,
     MinusEqual,
+    Star,
+    StarStar,
+    Slash,
+    Percent,
     StarEqual,
+    StarStarEqual,
     SlashEqual,
-    PctEqual,
-    ExpEqual,
-    PlusPlus,
-    MinusMinus,
+    PercentEqual,
 
     // comparison operators
     Equal,
+    EqualEqual,
     Less,
-    More,
-    NotEqual,
     LessEqual,
+    More,
     MoreEqual,
-    Assign,
 
-    // accessors
-    Hash,
-    At,
+    // boolean operators
+    And,
+    AndAnd,
+    Bar,
+    BarBar,
+    Xor,
+    AndEqual,
+    OrEqual,
+    XorEqual,
+    Tilde,
+    Bang,
 
-    // control flow
+    // symbols
     Question,
     Colon,
-    Pipe,
-    Placeholder,
+    Hash,
+    At,
     Underscore,
-
-    // delimiters
-    LBrack, 
-    RBrack,
-    LParen, 
-    RParen,
-    RBrace,
-    LBrace,
-    Comma,
+    BarMore,
     Dot,
+    Comma,
     Semi,
-    EOL,
-    BOF,
-    EOF,
-
-    // keywords
-    For,
-    Do,
-    While,
-    Until,
-    Repeat,
-    Loop,
-    With,
-    If,
-    Else,
-    Switch,
-    Case,
-    Default,
-    Break,
-    Return,
-    Exit,
-    Var,
-    Globalvar,
-    Enum,
-    Global,
-    HashDefine,
-    HashPragma,
-    Div,
-    Mod,
-    Argument,
-
-    // reserved words (keywords)
-    Public,
-    Protected,
-    Private,
-    Let,
-    Const,
-    Property,
-    Method,
-    Function,
-    Local,
-    Struct,
-    Class,
-    Trait,
-    Interface,
-    Protocol,
-    Extension,
-    Implementation,
-    Type,
-    Data,
-    In,
-    Is,
-    Of,
-    TypeOf,
-    InstanceOf,
-    Match,
-    Otherwise,
-    Throw,
-    Catch,
-    Try,
-    Unreachable,
-    Null,
     
-    // reserved words (types)
-    TBool,
-    TNumber,
-    TString,
-    TChar,
-    TArray,
-    TSymbol,
-    TVoid,
-    TNull,
-    TNever,
-    TMap,
-    TList,
-    TGrid,
-    TObject,
-    TRoom,
-    TSprite,
-    TScript,
-    TPath,
-    TTileSet,
-    TSound,
-    TFont,
-    TTimeline,
+    // whitespace
+    EOL,
 
-    // future symbols
-    TemplateLiteral(String),
-    MatchEqual,
+    // brackets
+    LParen,
+    RParen,
+    LBrack,
+    RBrack,
+    LBrace,
+    RBrace,
+
+    // identifier
+    Identifier,
+    End,
 }
 
-pub struct Tokenizer {}
+impl Default for State {
+    fn default() -> Self {
+        State::Start
+    }
+}
+
+/// Extracts tokens from a source file
+#[derive(Clone, Debug)]
+pub struct Tokenizer<'r, R> where R: Read + 'r {
+    state: State,
+    current_token: String,
+    reader: &'r R,
+}
