@@ -106,7 +106,7 @@ pub enum Token {
     Globalvar,
     Enum,
     Global,
-    HashDefine,
+    HashMacro,
     HashPragma,
     Div,
     Mod,

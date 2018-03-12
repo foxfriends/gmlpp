@@ -10,6 +10,7 @@ use notify;
 pub enum Error {
     ArgumentError,
     NoProject,
+    InvalidCharacter,
     MissingResource(String),
     IOError(io::Error),
     JSONError(serde_json::Error),
@@ -34,6 +35,7 @@ impl error::Error for Error {
         match self {
             &ArgumentError => "Please supply the project file (.yyp)",
             &NoProject => "The project file does not exist at the supplied path",
+            &InvalidCharacter => "Invalid character in source file",
             &MissingResource(ref message) => &message,
             &IOError(ref error) => error.description(),
             &JSONError(ref error) => error.description(),
