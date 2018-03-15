@@ -46,10 +46,13 @@ pub enum State {
     StarStarEqual,
     SlashEqual,
     PercentEqual,
+    PlusPlus,
+    MinusMinus,
 
     // comparison operators
     Equal,
     EqualEqual,
+    NotEqual,
     Less,
     LessEqual,
     More,
@@ -62,10 +65,12 @@ pub enum State {
     BarBar,
     Xor,
     AndEqual,
-    OrEqual,
+    BarEqual,
     XorEqual,
     Tilde,
     Bang,
+    LShift,
+    RShift,
 
     // symbols
     Question,
@@ -258,10 +263,7 @@ impl State {
                     '/' => Ok(Some(SlashSlash)),
                     '=' => Ok(Some(SlashEqual)),
                     '*' => Ok(Some(SlashStar(1))),
-                    '(' | '-' | '.' | '_' => Ok(None),
-                    c if c.is_whitespace() => Ok(None),
-                    c if c.is_alphanumeric() => Ok(None),
-                    _ => Err(Error::UnexpectedCharacter),
+                    _ => Ok(None),
                 }
 
             // comments
@@ -312,7 +314,7 @@ impl State {
             SlashStarSlash(depth) =>
                 match c {
                     '/' => Ok(Some(SlashStarSlash(depth))),
-                    '*' => 
+                    '*' =>
                         if depth == ::std::u8::MAX {
                             Err(Error::CommentNestingDepth)
                         } else {
@@ -321,8 +323,187 @@ impl State {
                     _ => Ok(Some(SlashStar(depth))),
                 }
 
+            // '
+            CharStart =>
+                match c {
+                    '\\' => Ok(Some(CharSlash)),
+                    '\'' => Err(Error::UnexpectedCharacter),
+                    _ => Ok(Some(CharX)),
+                }
+
+            // 'a
+            CharX =>
+                match c {
+                    '\'' => Ok(Some(Char)),
+                    _ => Err(Error::UnexpectedCharacter),
+                }
+
+            // '\
+            CharSlash => Ok(Some(CharX)),
+
+            // 'a'
+            Char => Ok(None),
+
+            // "
+            StrStart =>
+                match c {
+                    '"' => Ok(Some(Str)),
+                    '\\' => Ok(Some(StrSlash)),
+                    _ => Ok(Some(StrStart)),
+                }
+
+            // "xx\
+            StrSlash => Ok(Some(StrStart)),
+
+            // "xxx"
+            Str => Ok(None),
+
+            // +
+            Plus =>
+                match c {
+                    '+' => Ok(Some(PlusPlus)),
+                    '=' => Ok(Some(PlusEqual)),
+                    _ => Ok(None),
+                }
+
+            // ++
+            PlusPlus => Ok(None),
+
+            // +=
+            PlusEqual => Ok(None),
+
+            // -
+            Minus =>
+                match c {
+                    '-' => Ok(Some(MinusMinus)),
+                    '=' => Ok(Some(MinusEqual)),
+                    _ => Ok(None),
+                }
+
+            // --
+            MinusMinus => Ok(None),
+
+            // -=
+            MinusEqual => Ok(None),
+
+            // *
+            Star =>
+                match c {
+                    '*' => Ok(Some(StarStar)),
+                    '=' => Ok(Some(StarEqual)),
+                    _ => Ok(None),
+                },
+
+            // **
+            StarStar => Ok(None),
+
+            // *=
+            StarEqual => Ok(None),
+
+            // /=
+            SlashEqual => Ok(None),
+
+            // %
+            Percent => 
+                match c {
+                    '=' => Ok(Some(PercentEqual)),
+                    _ => Ok(None),
+                }
+
+            // %=
+            PercentEqual => Ok(None),
+
+            // |
+            Bar =>
+                match c {
+                    '|' => Ok(Some(BarBar)),
+                    '=' => Ok(Some(BarEqual)),
+                    _ => Ok(None),
+                }
+
+            // ||
+            BarBar => Ok(None),
+
+            // |=
+            BarEqual => Ok(None),
+
+            // &
+            And => 
+                match c {
+                    '&' => Ok(Some(AndAnd)),
+                    '=' => Ok(Some(AndEqual)),
+                    _ => Ok(None),
+                }
+
+            // &&
+            AndAnd => Ok(None),
+
+            // &=
+            AndEqual => Ok(None),
+
+            // ^
+            Xor => 
+                match c {
+                    '=' => Ok(Some(XorEqual)),
+                    _ => Ok(None),
+                }
+
+            // ^=
+            XorEqual => Ok(None)
+
+            // ~
+            Tilde => Ok(None),
+
+            // !
+            Bang =>
+                match c {
+                    '=' => Ok(Some(NotEqual)),
+                    _ => Ok(None),
+                }
+
+            // !=
+            NotEqual => Ok(None),
+
+            // =
+            Equal => 
+                match c {
+                    '=' => Ok(Some(EqualEqual)),
+                    _ => Ok(None),
+                }
+
+            // ==
+            EqualEqual => Ok(None),
+
+            // <
+            Less => 
+                match c {
+                    '<' => Ok(Some(LShift)),
+                    '=' => Ok(Some(LessEqual)),
+                    _ => Ok(None),
+                }
+
+            // <<
+            LShift => Ok(None),
+
+            // <=
+            LessEqual => Ok(None),
+
+            // >
+            More => 
+                match c {
+                    '>' => Ok(Some(RShift)),
+                    '=' => Ok(Some(MoreEqual)),
+                    _ => Ok(None),
+                }
+
+            // >>
+            RShift => Ok(None),
+
+            // >=
+            MoreEqual => Ok(None),
+
             // the rest
-            _ => Ok(None)
+            _ => Ok(None),
         }
     }
 }
