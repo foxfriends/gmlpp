@@ -14,10 +14,13 @@ pub enum Error {
     UnexpectedCharacter,
     MalformedNumericLiteral,
     CommentNestingDepth,
+    InvalidPreprocessorDirective,
+    UnexpectedEOF,
     MissingResource(String),
     IOError(io::Error),
     JSONError(serde_json::Error),
     NotifyError(notify::Error),
+    CharsError(io::CharsError),
 }
 
 impl Error {
@@ -42,10 +45,13 @@ impl error::Error for Error {
             &UnexpectedCharacter => "Unexpected character in source file",
             &MalformedNumericLiteral => "Malformed numeric literal",
             &CommentNestingDepth => "Comment nesting is too deep",
+            &InvalidPreprocessorDirective => "Invalid preprocessor directive",
+            &UnexpectedEOF => "Unexpected end of input",
             &MissingResource(ref message) => &message,
             &IOError(ref error) => error.description(),
             &JSONError(ref error) => error.description(),
             &NotifyError(ref error) => error.description(),
+            &CharsError(ref error) => error.description(),
         }
     }
 }
@@ -65,5 +71,11 @@ impl From<serde_json::Error> for Error {
 impl From<notify::Error> for Error {
     fn from(other: notify::Error) -> Error {
         Error::NotifyError(other)
+    }
+}
+
+impl From<io::CharsError> for Error {
+    fn from(other: io::CharsError) -> Error {
+        Error::CharsError(other)
     }
 }

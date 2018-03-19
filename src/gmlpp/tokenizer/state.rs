@@ -8,6 +8,7 @@ pub enum State {
     SlashSlash,
     SlashSlashSlash,
     LineComment,
+    DocComment,
     SlashStar(u8),
     SlashStarSlash(u8),
     SlashStarStar(u8),
@@ -70,7 +71,9 @@ pub enum State {
     Tilde,
     Bang,
     LShift,
+    LShiftEqual,
     RShift,
+    RShiftEqual,
 
     // symbols
     Question,
@@ -280,7 +283,7 @@ impl State {
             SlashSlashSlash =>
                 match c {
                     '\n' => Ok(None),
-                    _ => Ok(Some(SlashSlashSlash)),
+                    _ => Ok(Some(DocComment)),
                 }
 
             // //a
@@ -288,6 +291,13 @@ impl State {
                 match c {
                     '\n' => Ok(None),
                     _ => Ok(Some(LineComment)),
+                }
+
+            // ///a
+            DocComment => 
+                match c {
+                    '\n' => Ok(None),
+                    _ => Ok(Some(DocComment)),
                 }
 
             // /*
@@ -395,16 +405,22 @@ impl State {
                 },
 
             // **
-            StarStar => Ok(None),
+            StarStar =>
+                match c {
+                    '=' => Ok(Some(StarStarEqual)),
+                    _ => Ok(None),
+                },
 
             // *=
             StarEqual => Ok(None),
+
+            StarStarEqual => Ok(None),
 
             // /=
             SlashEqual => Ok(None),
 
             // %
-            Percent => 
+            Percent =>
                 match c {
                     '=' => Ok(Some(PercentEqual)),
                     _ => Ok(None),
@@ -428,7 +444,7 @@ impl State {
             BarEqual => Ok(None),
 
             // &
-            And => 
+            And =>
                 match c {
                     '&' => Ok(Some(AndAnd)),
                     '=' => Ok(Some(AndEqual)),
@@ -442,14 +458,14 @@ impl State {
             AndEqual => Ok(None),
 
             // ^
-            Xor => 
+            Xor =>
                 match c {
                     '=' => Ok(Some(XorEqual)),
                     _ => Ok(None),
                 }
 
             // ^=
-            XorEqual => Ok(None)
+            XorEqual => Ok(None),
 
             // ~
             Tilde => Ok(None),
@@ -465,7 +481,7 @@ impl State {
             NotEqual => Ok(None),
 
             // =
-            Equal => 
+            Equal =>
                 match c {
                     '=' => Ok(Some(EqualEqual)),
                     _ => Ok(None),
@@ -475,7 +491,7 @@ impl State {
             EqualEqual => Ok(None),
 
             // <
-            Less => 
+            Less =>
                 match c {
                     '<' => Ok(Some(LShift)),
                     '=' => Ok(Some(LessEqual)),
@@ -483,13 +499,20 @@ impl State {
                 }
 
             // <<
-            LShift => Ok(None),
+            LShift => 
+                match c {
+                    '=' => Ok(Some(LShiftEqual)),
+                    _ => Ok(None),
+                }
+
+            // <<=
+            LShiftEqual => Ok(None),
 
             // <=
             LessEqual => Ok(None),
 
             // >
-            More => 
+            More =>
                 match c {
                     '>' => Ok(Some(RShift)),
                     '=' => Ok(Some(MoreEqual)),
@@ -497,13 +520,89 @@ impl State {
                 }
 
             // >>
-            RShift => Ok(None),
+            RShift =>
+                match c {
+                    '=' => Ok(Some(RShiftEqual)),
+                    _ => Ok(None),
+                },
+
+            // >>=
+            RShiftEqual => Ok(None),
 
             // >=
             MoreEqual => Ok(None),
 
-            // the rest
-            _ => Ok(None),
+            Question => Ok(None),
+
+            Colon => Ok(None),
+
+            Hash =>
+                match c {
+                    'm' => Ok(Some(HashM)),
+                    'p' => Ok(Some(HashP)),
+                    _ => Ok(None),
+                },
+
+            At => Ok(None),
+
+            Underscore =>
+                match c {
+                    c if c.is_alphanumeric() => Ok(Some(Identifier)),
+                    _ => Ok(None),
+                }
+
+            BarMore => Ok(None),
+
+            Dot =>
+                match c {
+                    c if c.is_numeric() => Ok(Some(DecFloat)),
+                    _ => Ok(None),
+                }
+
+            Comma => Ok(None),
+
+            Semi => Ok(None),
+
+            // preprocessor
+            HashM => if c == 'a' { Ok(Some(HashMa)) } else { Err(Error::InvalidPreprocessorDirective) }
+            HashMa => if c == 'c' { Ok(Some(HashMac)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashMac => if c == 'r' { Ok(Some(HashMacr)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashMacr => if c == 'o' { Ok(Some(HashMacro)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashMacro =>
+                match c {
+                    '_' => Err(Error::InvalidPreprocessorDirective),
+                    c if c.is_alphanumeric() => Err(Error::InvalidPreprocessorDirective),
+                    _ => Ok(None),
+                }
+            HashP => if c == 'r' { Ok(Some(HashPr)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashPr => if c == 'a' { Ok(Some(HashPra)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashPra => if c == 'g' { Ok(Some(HashPrag)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashPrag => if c == 'm' { Ok(Some(HashPragm)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashPragm => if c == 'a' { Ok(Some(HashPragma)) } else { Err(Error::InvalidPreprocessorDirective) },
+            HashPragma =>
+                match c {
+                    '_' => Err(Error::InvalidPreprocessorDirective),
+                    c if c.is_alphanumeric() => Err(Error::InvalidPreprocessorDirective),
+                    _ => Ok(None),
+                },
+
+            // whitespace
+            EOL => Ok(None),
+
+            // brackets
+            LParen => Ok(None),
+            RParen => Ok(None),
+            LBrack => Ok(None),
+            RBrack => Ok(None),
+            LBrace => Ok(None),
+            RBrace => Ok(None),
+
+            Identifier =>
+                match c {
+                    '_' => Ok(Some(Identifier)),
+                    c if c.is_alphanumeric() => Ok(Some(Identifier)),
+                    _ => Ok(None),
+                },
         }
     }
 }

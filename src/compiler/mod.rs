@@ -52,11 +52,9 @@ impl Compiler {
 
     /// Compiles a `.gmlpp` file to it's corresponding `.gml` file
     fn compile(&self, source: Source) -> Result<(), Error> {
-        println!("Compiling source: {:?}", source);
-        let mut path = self.project.directory();
-        path.push(source.gmlpp());
-        if path.exists() {
-            let file = File::open(path)?;
+        if source.gmlpp().exists() {
+            println!("Compiling source: {:?}", source);
+            let file = File::open(source.gmlpp())?;
             let ast = AST::from_reader(file);
             let outfile = File::create(source.gml())?;
             // do compile

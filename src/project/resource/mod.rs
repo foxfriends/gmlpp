@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde_json;
 
@@ -27,7 +27,7 @@ enum YY {
 
 #[derive(Clone, Debug)]
 pub struct Resource {
-    path: String,
+    path: PathBuf,
     resource: YY,
 }
 
@@ -38,7 +38,7 @@ impl Resource {
         let resource = serde_json::from_reader(file)?;
         Ok(
             Self {
-                path: path.as_ref().to_str().unwrap().to_owned(),
+                path: path.as_ref().parent().unwrap().to_owned(),
                 resource,
             }
         )
@@ -48,8 +48,8 @@ impl Resource {
     pub fn sources(&self) -> Vec<Source> {
         use self::YY::*;
         match &self.resource {
-            &Object(ref object) => object.sources(),
-            &Script(ref script) => script.sources(),
+            &Object(ref object) => object.sources().into_iter().map(|source| source.resolved_to(self.path.clone())).collect(),
+            &Script(ref script) => script.sources().into_iter().map(|source| source.resolved_to(self.path.clone())).collect(),
             _ => vec![],
         }
     }
