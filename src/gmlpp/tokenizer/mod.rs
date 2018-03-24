@@ -4,11 +4,13 @@ use error::Error;
 
 mod token;
 mod state;
+mod tokens;
 
 pub use self::token::Token;
+pub use self::tokens::Tokens;
 use self::state::State;
 
-pub fn tokenize<R>(reader: R) -> Result<Vec<Token>, Error>
+pub fn tokenize<R>(reader: R) -> Result<Tokens, Error>
 where R: Read {
     let chars = reader.chars();
     let mut state = State::default();
@@ -40,5 +42,5 @@ where R: Read {
         }
     }
     tokens.push(Token::EOF);
-    Ok(tokens)
+    Ok(Tokens::new(tokens))
 }

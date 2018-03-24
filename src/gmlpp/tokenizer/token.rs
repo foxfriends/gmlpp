@@ -230,7 +230,7 @@ impl Token {
             State::RBrace => RBrace,
             State::EOL => EOL,
             State::Identifier => Token::keyword(&string).unwrap_or(Identifier(string)),
-            _ => unimplemented!("Cannot turn state {:?} into a token", state),
+            _ => panic!("Cannot turn state {:?} into a token", state),
         }
     }
 

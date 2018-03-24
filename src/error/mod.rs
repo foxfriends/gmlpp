@@ -3,8 +3,12 @@ use std::fmt;
 use std::io;
 use std::path;
 
+mod parse_error;
+
 use serde_json;
 use notify;
+
+pub use self::parse_error::ParseError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -16,6 +20,7 @@ pub enum Error {
     CommentNestingDepth,
     InvalidPreprocessorDirective,
     UnexpectedEOF,
+    ParseError(ParseError),
     MissingResource(String),
     IOError(io::Error),
     JSONError(serde_json::Error),
@@ -47,6 +52,7 @@ impl error::Error for Error {
             &CommentNestingDepth => "Comment nesting is too deep",
             &InvalidPreprocessorDirective => "Invalid preprocessor directive",
             &UnexpectedEOF => "Unexpected end of input",
+            &ParseError(ref error) => error.description(),
             &MissingResource(ref message) => &message,
             &IOError(ref error) => error.description(),
             &JSONError(ref error) => error.description(),
