@@ -22,7 +22,7 @@ impl Display for ArgumentList {
             &Argument(ref ident, ref rest) => write!(f, "argument {}\n{}", ident, rest),
             &DefaultArgument(ref ident, ref expr, ref rest) => write!(f, "argument {} = {}\n{}", ident, expr, rest),
             &OptionalArgument(ref ident, ref rest) => write!(f, "argument {}?\n{}", ident, rest),
-            &VariadicArgument(ref ident) => write!(f, "argument[] {}\n", ident),
+            &VariadicArgument(ref ident) => write!(f, "argument ...{}\n", ident),
             &End => write!(f, ""),
         }
     }
@@ -30,13 +30,32 @@ impl Display for ArgumentList {
 
 impl Fragment for ArgumentList {
     fn parse(tokens: &Tokens) -> Result<Self, Error> {
-        match tokens.peek() {
-            Token::Argument => {
+        use self::ArgumentList::*;
+        match tokens[..2] {
+            [Token::Argument, Token::DotDotDot] => {
+                tokens.skip(2);
+                let ident = Identifier::parse(tokens)?;
+                Ok(VariadicArgument(ident))
+            }
+            [Token::Argument, ..] => {
                 tokens.skip(1);
                 let ident = Identifier::parse(tokens)?;
-                unimplemented!()
-            },
-            _ => Ok(ArgumentList::End),
+                match tokens.peek() {
+                    Token::Question => {
+                        tokens.skip(1);
+                        let rest = Self::parse(tokens)?;
+                        Ok(OptionalArgument(ident, box rest))
+                    }
+                    Token::Equal => {
+                        tokens.skip(1);
+                        let expr = Expression::parse(tokens)?;
+                        let rest = Self::parse(tokens)?;
+                        Ok(DefaultArgument(ident, expr, box rest))
+                    }
+                    _ => Ok(Argument(ident, box Self::parse(tokens)?))
+                }
+            }
+            _ => Ok(End),
         }
     }
 }

@@ -2,25 +2,26 @@ use std::fmt::{self, Display, Formatter};
 
 use super::fragment::Fragment;
 use super::argument_list::ArgumentList;
-use super::sequence::Sequence;
+use super::statements::Statements;
 use super::super::tokenizer::Tokens;
 use error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Code {
     args: ArgumentList,
-    body: Sequence,
+    body: Statements,
 }
 
 impl Display for Code {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.args)
+        write!(f, "{}\n{}", self.args, self.body)
     }
 }
 
 impl Fragment for Code {
     fn parse(tokens: &Tokens) -> Result<Self, Error> {
         let args = ArgumentList::parse(tokens)?;
-        Ok(Code { args, body: Sequence::End })
+        let body = Statements::parse(tokens)?;
+        Ok(Self { args, body })
     }
 }

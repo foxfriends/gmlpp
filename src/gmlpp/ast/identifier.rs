@@ -21,7 +21,6 @@ impl Fragment for Identifier {
                 Ok(Identifier(ident))
             }
             _ => {
-
                 Err(Error::ParseError(ParseError::ExpectedIdentifier))
             }
         }

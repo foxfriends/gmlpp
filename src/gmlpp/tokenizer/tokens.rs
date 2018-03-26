@@ -37,6 +37,14 @@ impl Tokens {
     pub fn back(&self, n: usize) {
         self.pos.set(self.pos.get() - n);
     }
+
+    pub fn pos(&self) -> usize {
+        self.pos.get()
+    }
+
+    pub fn seek(&self, pos: usize) {
+        self.pos.set(pos);
+    }
 }
 
 impl Index<usize> for Tokens {

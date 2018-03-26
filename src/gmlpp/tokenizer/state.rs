@@ -85,6 +85,8 @@ pub enum State {
     Dot,
     Comma,
     Semi,
+    DotDot,
+    DotDotDot,
 
     // preprocessor
     HashM,
@@ -555,7 +557,20 @@ impl State {
 
             Dot =>
                 match c {
+                    '.' => Ok(Some(DotDot)),
                     c if c.is_numeric() => Ok(Some(DecFloat)),
+                    _ => Ok(None),
+                }
+
+            DotDot =>
+                match c {
+                    '.' => Ok(Some(DotDotDot)),
+                    _ => Err(Error::UnexpectedCharacter),
+                }
+
+            DotDotDot =>
+                match c {
+                    '.' => Err(Error::UnexpectedCharacter),
                     _ => Ok(None),
                 }
 
