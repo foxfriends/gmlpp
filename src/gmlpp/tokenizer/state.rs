@@ -296,7 +296,7 @@ impl State {
                 }
 
             // ///a
-            DocComment => 
+            DocComment =>
                 match c {
                     '\n' => Ok(None),
                     _ => Ok(Some(DocComment)),
@@ -501,7 +501,7 @@ impl State {
                 }
 
             // <<
-            LShift => 
+            LShift =>
                 match c {
                     '=' => Ok(Some(LShiftEqual)),
                     _ => Ok(None),
@@ -602,7 +602,7 @@ impl State {
                 },
 
             // whitespace
-            EOL => Ok(None),
+            EOL => if c.is_whitespace() { Ok(Some(EOL)) } else { Ok(None) },
 
             // brackets
             LParen => Ok(None),
@@ -621,4 +621,3 @@ impl State {
         }
     }
 }
-

@@ -21,6 +21,7 @@ impl Fragment for Identifier {
                 Ok(Identifier(ident))
             }
             _ => {
+                eprintln!("Failed to match Identifier: {:?}", tokens.peek());
                 Err(Error::ParseError(ParseError::ExpectedIdentifier))
             }
         }

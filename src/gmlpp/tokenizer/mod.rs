@@ -37,10 +37,23 @@ where R: Read {
     }
     if state != State::default() {
         match state.next('\n')? {
+            None | Some(State::EOL) => tokens.push(Token::new(state, token)),
             Some(_) => return Err(Error::UnexpectedEOF),
-            None => { tokens.push(Token::new(state, token)) }
         }
     }
     tokens.push(Token::EOF);
-    Ok(Tokens::new(tokens))
+    println!("{:?}", tokens);
+    Ok(Tokens::new(
+        tokens
+            .into_iter()
+            // Remove all comments because they're dumb
+            .filter(|token|
+                if let Token::Comment(..) = token {
+                    false
+                } else {
+                    true
+                }
+            )
+            .collect()
+    ))
 }

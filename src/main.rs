@@ -1,4 +1,4 @@
-#![feature(io, slice_patterns, box_patterns, box_syntax, match_default_bindings)]
+#![feature(io, slice_patterns, box_patterns, box_syntax)]
 
 #[macro_use] extern crate serde_derive;
 extern crate serde;

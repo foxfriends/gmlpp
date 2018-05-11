@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::io::Write;
 use std::time::Duration;
 use std::sync::mpsc::channel;
 
@@ -56,7 +57,8 @@ impl Compiler {
             println!("Compiling source: {:?}", source);
             let file = File::open(source.gmlpp())?;
             let ast = AST::from_reader(file);
-            let outfile = File::create(source.gml())?;
+            let mut outfile = File::create(source.gml())?;
+            write!(outfile, "{:?}", ast)?;
             // do compile
         }
         Ok(())

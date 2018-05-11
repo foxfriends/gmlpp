@@ -3,11 +3,13 @@ use std::fmt::{self, Display, Formatter};
 use super::fragment::Fragment;
 use super::argument_list::ArgumentList;
 use super::statements::Statements;
-use super::super::tokenizer::Tokens;
+use super::doc_comment::DocComment;
+use super::super::tokenizer::{Token, Tokens};
 use error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Code {
+    docs: DocComment,
     args: ArgumentList,
     body: Statements,
 }
@@ -20,8 +22,11 @@ impl Display for Code {
 
 impl Fragment for Code {
     fn parse(tokens: &Tokens) -> Result<Self, Error> {
+        assert_eq!(tokens[0], Token::BOF);
+        tokens.skip(1);
+        let docs = DocComment::parse(tokens)?;
         let args = ArgumentList::parse(tokens)?;
         let body = Statements::parse(tokens)?;
-        Ok(Self { args, body })
+        Ok(Self { docs, args, body })
     }
 }

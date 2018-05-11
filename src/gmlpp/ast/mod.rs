@@ -14,11 +14,13 @@ mod statements;
 mod value;
 mod literal;
 mod call;
+mod doc_comment;
 
 use self::code::Code;
 use self::fragment::Fragment;
 
 /// The abstract syntax tree of a .gmlpp program
+#[derive(Debug)]
 pub struct AST(Code);
 
 impl AST {

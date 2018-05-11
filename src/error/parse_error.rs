@@ -3,9 +3,11 @@ use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub enum ParseError {
+    ExpectedValue,
     ExpectedIdentifier,
     ExpectedFunctionCall,
     IncompleteTernaryOperator,
+    MismatchedParentheses,
 }
 
 impl Display for ParseError {
@@ -18,9 +20,11 @@ impl Error for ParseError {
     fn description(&self) -> &str {
         use self::ParseError::*;
         match self {
-            &ExpectedIdentifier => "Expected identifier",
-            &ExpectedFunctionCall => "Expected function call",
-            &IncompleteTernaryOperator => "Incomplete ternary operator",
+            ExpectedValue => "Expected value",
+            ExpectedIdentifier => "Expected identifier",
+            ExpectedFunctionCall => "Expected function call",
+            IncompleteTernaryOperator => "Incomplete ternary operator",
+            MismatchedParentheses => "Mismatched parentheses",
         }
     }
-} 
+}

@@ -19,13 +19,14 @@ impl Tokens {
 
     /// Returns the token at the current position
     pub fn peek(&self) -> Token {
-        self[self.pos.get()].clone()
+        self[0].clone()
     }
 
     /// Returns the current token, and increments the counter by one
     pub fn next(&self) -> Token {
+        let tok = self[0].clone();
         self.skip(1);
-        self[self.pos.get() - 1].clone()
+        tok
     }
 
     /// Increments the internal counter by some amount

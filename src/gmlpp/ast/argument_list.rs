@@ -46,7 +46,7 @@ impl Fragment for ArgumentList {
                         let rest = Self::parse(tokens)?;
                         Ok(OptionalArgument(ident, box rest))
                     }
-                    Token::Equal => {
+                    Token::Assign => {
                         tokens.skip(1);
                         let expr = Expression::parse(tokens)?;
                         let rest = Self::parse(tokens)?;
@@ -55,7 +55,10 @@ impl Fragment for ArgumentList {
                     _ => Ok(Argument(ident, box Self::parse(tokens)?))
                 }
             }
-            _ => Ok(End),
+            _ => {
+                eprintln!("Failed to match ArgumentList: {:?}", tokens[..2].to_vec());
+                Ok(End)
+            },
         }
     }
 }
