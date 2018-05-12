@@ -4,6 +4,7 @@ use std::fmt::{self, Display, Formatter};
 #[derive(Debug)]
 pub enum ParseError {
     ExpectedValue,
+    ExpectedLiteral,
     ExpectedIdentifier,
     ExpectedFunctionCall,
     IncompleteTernaryOperator,
@@ -21,6 +22,7 @@ impl Error for ParseError {
         use self::ParseError::*;
         match self {
             ExpectedValue => "Expected value",
+            ExpectedLiteral => "Expected literal",
             ExpectedIdentifier => "Expected identifier",
             ExpectedFunctionCall => "Expected function call",
             IncompleteTernaryOperator => "Incomplete ternary operator",

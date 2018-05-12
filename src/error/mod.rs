@@ -2,6 +2,7 @@ use std::error;
 use std::fmt;
 use std::io;
 use std::path;
+use std::num;
 
 mod parse_error;
 
@@ -25,6 +26,8 @@ pub enum Error {
     IOError(io::Error),
     JSONError(serde_json::Error),
     NotifyError(notify::Error),
+    ParseFloatError(num::ParseFloatError),
+    ParseIntError(num::ParseIntError),
     CharsError(io::CharsError),
 }
 
@@ -53,6 +56,8 @@ impl error::Error for Error {
             &InvalidPreprocessorDirective => "Invalid preprocessor directive",
             &UnexpectedEOF => "Unexpected end of input",
             &ParseError(ref error) => error.description(),
+            &ParseFloatError(ref error) => error.description(),
+            &ParseIntError(ref error) => error.description(),
             &MissingResource(ref message) => &message,
             &IOError(ref error) => error.description(),
             &JSONError(ref error) => error.description(),
@@ -77,6 +82,18 @@ impl From<serde_json::Error> for Error {
 impl From<notify::Error> for Error {
     fn from(other: notify::Error) -> Error {
         Error::NotifyError(other)
+    }
+}
+
+impl From<num::ParseFloatError> for Error {
+    fn from(other: num::ParseFloatError) -> Error {
+        Error::ParseFloatError(other)
+    }
+}
+
+impl From<num::ParseIntError> for Error {
+    fn from(other: num::ParseIntError) -> Error {
+        Error::ParseIntError(other)
     }
 }
 
