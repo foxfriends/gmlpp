@@ -15,6 +15,7 @@ mod value;
 mod literal;
 mod call;
 mod doc_comment;
+mod helpers;
 
 use self::code::Code;
 use self::fragment::Fragment;

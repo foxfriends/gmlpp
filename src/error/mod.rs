@@ -67,6 +67,12 @@ impl error::Error for Error {
     }
 }
 
+impl From<ParseError> for Error {
+    fn from(other: ParseError) -> Error {
+        Error::ParseError(other)
+    }
+}
+
 impl From<io::Error> for Error {
     fn from(other: io::Error) -> Error {
         Error::IOError(other)

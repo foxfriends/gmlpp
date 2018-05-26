@@ -9,6 +9,7 @@ pub enum ParseError {
     ExpectedFunctionCall,
     IncompleteTernaryOperator,
     MismatchedParentheses,
+    ExpectedEndOfStatement,
 }
 
 impl Display for ParseError {
@@ -27,6 +28,7 @@ impl Error for ParseError {
             ExpectedFunctionCall => "Expected function call",
             IncompleteTernaryOperator => "Incomplete ternary operator",
             MismatchedParentheses => "Mismatched parentheses",
+            ExpectedEndOfStatement => "Expected end of statement",
         }
     }
 }
