@@ -1,7 +1,8 @@
 //! Some helper functions for parsing
 
 use super::super::tokenizer::{Token, Tokens};
-use error::ParseError;
+use super::fragment::Fragment;
+use error::{Error, ParseError};
 
 pub fn semi_or_eol(tokens: &Tokens) -> Result<(), ParseError> {
     match tokens[..2] {
@@ -10,4 +11,17 @@ pub fn semi_or_eol(tokens: &Tokens) -> Result<(), ParseError> {
         _ => return Err(ParseError::ExpectedEndOfStatement),
     }
     Ok(())
+}
+
+pub fn parenthesized<T: Fragment>(tokens: &Tokens) -> Result<T, Error> {
+    if tokens[0] != Token::LParen {
+        return Err(Error::ParseError(ParseError::ExpectedParentheses));
+    }
+    tokens.skip(1);
+    let thing = T::parse(tokens)?;
+    if tokens[0] != Token::RParen {
+        return Err(Error::ParseError(ParseError::MismatchedParentheses));
+    }
+    tokens.skip(1);
+    Ok(thing)
 }

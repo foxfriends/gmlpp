@@ -436,6 +436,7 @@ impl State {
                 match c {
                     '|' => Ok(Some(BarBar)),
                     '=' => Ok(Some(BarEqual)),
+                    '>' => Ok(Some(BarMore)),
                     _ => Ok(None),
                 }
 

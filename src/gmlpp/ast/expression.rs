@@ -150,7 +150,7 @@ enum Precedence {
     AddSub,
     MultDivPct,
     Exp,
-    Max,
+    #[allow(dead_code)] Max,
 }
 
 impl Default for Precedence {
