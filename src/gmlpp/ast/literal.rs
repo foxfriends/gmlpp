@@ -28,16 +28,17 @@ impl Display for Literal {
 
 impl Fragment for Literal {
     fn parse(tokens: &Tokens) -> Result<Self, Error> {
-        match tokens.peek() {
+        match tokens.next() {
             Token::BinLiteral(bin) => Ok(Literal::Numeric(i64::from_str_radix(&bin, 2)? as f64)),
             Token::HexLiteral(hex) => Ok(Literal::Numeric(i64::from_str_radix(&hex, 2)? as f64)),
             Token::DecLiteral(dec) => Ok(Literal::Numeric(f64::from_str(&dec)?)),
             Token::TrueLiteral => Ok(Literal::Boolean(true)),
             Token::FalseLiteral => Ok(Literal::Boolean(false)),
             Token::StrLiteral(string) => Ok(Literal::String(string)),
-            Token::CharLiteral(string) => Ok(Literal::String(unimplemented!())),
+            Token::CharLiteral(string) => Ok(Literal::Char(unimplemented!())),
             Token::UndefinedLiteral => Ok(Literal::Undefined),
             _ => {
+                tokens.back(1);
                 eprintln!("Failed to match Literal: {:?}", tokens.peek());
                 Err(Error::ParseError(ParseError::ExpectedLiteral))
             }

@@ -59,6 +59,7 @@ impl Compiler {
             let ast = AST::from_reader(file);
             let mut outfile = File::create(source.gml())?;
             write!(outfile, "{:?}", ast)?;
+            eprintln!("{:?}", ast);
             // do compile
         }
         Ok(())

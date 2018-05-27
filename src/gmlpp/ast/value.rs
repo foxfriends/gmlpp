@@ -14,16 +14,22 @@ pub enum Value {
     Literal(Literal),
     Expr(Box<Expression>),
     Call(Call),
+    Negative(Box<Value>),
+    Not(Box<Value>),
+    Inverted(Box<Value>),
 }
 
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         use self::Value::*;
         match self {
-            &Ident(ref ident) => ident.fmt(f),
-            &Literal(ref literal) => literal.fmt(f),
-            &Expr(ref expr) => write!(f, "({})", expr),
-            &Call(ref call) => call.fmt(f),
+            Ident(ref ident) => ident.fmt(f),
+            Literal(ref literal) => literal.fmt(f),
+            Expr(ref expr) => write!(f, "({})", expr),
+            Call(ref call) => call.fmt(f),
+            Negative(ref inner) => write!(f, "-{}", inner),
+            Not(ref inner) => write!(f, "!{}", inner),
+            Inverted(ref inner) => write!(f, "~{}", inner),
         }
     }
 }
@@ -49,6 +55,18 @@ impl Fragment for Value {
                 } else {
                     Ok(Value::Expr(box expr))
                 }
+            }
+            [Token::Minus, _] => {
+                tokens.skip(1);
+                Ok(Value::Negative(box Value::parse(tokens)?))
+            },
+            [Token::Bang, _] => {
+                tokens.skip(1);
+                Ok(Value::Not(box Value::parse(tokens)?))
+            },
+            [Token::Inv, _] => {
+                tokens.skip(1);
+                Ok(Value::Inverted(box Value::parse(tokens)?))
             }
             _ => {
                 eprintln!("Failed to match Value: {:?}", tokens.peek());

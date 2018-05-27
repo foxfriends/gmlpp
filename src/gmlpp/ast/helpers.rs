@@ -8,7 +8,10 @@ pub fn semi_or_eol(tokens: &Tokens) -> Result<(), ParseError> {
     match tokens[..2] {
         [Token::Semi, Token::EOL] => tokens.skip(2),
         [Token::Semi, _] | [Token::EOL, _] => tokens.skip(1),
-        _ => return Err(ParseError::ExpectedEndOfStatement),
+        _ => {
+            eprintln!("Could not end statement: {:?}", tokens[..2].to_vec());
+            return Err(ParseError::ExpectedEndOfStatement)
+        },
     }
     Ok(())
 }

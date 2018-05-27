@@ -68,11 +68,12 @@ impl Display for Expression {
 
 impl Fragment for Expression {
     fn parse(tokens: &Tokens) -> Result<Self, Error> {
-        let pos = tokens.pos();
         let value = Value::parse(tokens)?;
+        let pos = tokens.pos();
         match Self::prec_parse(tokens, Expression::Value(value), Precedence::default()) {
             Err(error) => {
                 tokens.seek(pos);
+                eprintln!("Failed to match Expression: {}", error);
                 Err(error)
             }
             Ok(expr) => Ok(expr),
@@ -82,9 +83,10 @@ impl Fragment for Expression {
 
 impl Expression {
     fn prec_parse(tokens: &Tokens, lhs: Expression, min_prec: Precedence) -> Result<Self, Error> {
-        let op = tokens.next();
+        let op = tokens.peek();
         match Precedence::of(&op) {
-            Some(op_prec) if op_prec >= min_prec =>
+            Some(op_prec) if op_prec >= min_prec => {
+                tokens.skip(1);
                 if op == Token::Pipe {
                     // the pipe is a special case because the rhs needs to be just one call
                     let pipe = Expression::Pipe(box lhs, Call::parse(tokens)?);
@@ -100,7 +102,8 @@ impl Expression {
                     let mut rhs = Expression::Value(Value::parse(tokens)?);
                     loop {
                         match Precedence::of(&tokens.peek()) {
-                            Some(peek_prec) if peek_prec > op_prec => { rhs = Self::prec_parse(tokens, rhs, peek_prec)?; }
+                            Some(peek_prec) if peek_prec > op_prec =>
+                                rhs = Self::prec_parse(tokens, rhs, peek_prec)?,
                             _ => break,
                         }
                     }
@@ -129,6 +132,7 @@ impl Expression {
                         _ => panic!("Unreachable! {:?} is not an operator", op),
                     }
                 }
+            }
             _ => Ok(lhs),
         }
     }

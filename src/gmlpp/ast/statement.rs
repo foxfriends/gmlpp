@@ -156,6 +156,7 @@ impl Fragment for Statement {
                 Ok(Statement::Exit)
             }
             [Token::Return] => {
+                tokens.skip(1);
                 match semi_or_eol(tokens) {
                     Ok(..) => Ok(Statement::Return(None)),
                     Err(_) => {
