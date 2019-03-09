@@ -4,7 +4,6 @@ use super::expression::Expression;
 use super::identifier::Identifier;
 use super::assignment::Assignment;
 use super::fragment::Fragment;
-use super::lvalue::LValue;
 use super::helpers::{semi_or_eol, parenthesized};
 use super::super::tokenizer::{Token, Tokens};
 use error::{Error, ParseError};
@@ -34,13 +33,29 @@ pub enum Statement {
     Continue,
 }
 
+impl Statement {
+    fn is_noop(&self) -> bool {
+        match self {
+            Statement::Noop => true,
+            _ => false
+        }
+    }
+
+    fn is_block(&self) -> bool {
+        match self {
+            Statement::Block(..) => true,
+            _ => false
+        }
+    }
+}
+
 impl Display for Statement {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let indent = f.precision().unwrap_or(0);
         match self {
-            Statement::Noop => writeln!(f, ";"),
+            Statement::Noop => writeln!(f, "{0:1$};", "", indent),
             Statement::Block(ref statements) => {
-                writeln!(f, "{0:1$}{{", "", indent)?;
+                writeln!(f, "{{")?;
                 for statement in statements {
                     match statement {
                         // Don't print noops in a block. There's no point
@@ -49,6 +64,58 @@ impl Display for Statement {
                     }
                 }
                 write!(f, "{0:1$}}}", "", indent)
+            }
+            Statement::Assignment(ref assignment) => writeln!(f, "{0:1$}{2};", "", indent, assignment),
+            Statement::Expression(ref expression) => writeln!(f, "{0:1$}{2};", "", indent, expression),
+            Statement::VarDecl(ref ident) => writeln!(f, "{0:1$}var {2};", "", indent, ident),
+            Statement::VarDeclAssign(ref ident, ref value) => writeln!(f, "{0:1$}var {2} = {3};", "", indent, ident, value),
+            Statement::GlobalvarDecl(ref ident) => writeln!(f, "{0:1$}globalvar {2};", "", indent, ident),
+            Statement::GlobalvarDeclAssign(ref ident, ref value) => writeln!(f, "{0:1$}globalvar {2} = {3};", "", indent, ident, value),
+            Statement::If(ref cond, ref body, None) if body.is_block() =>
+                writeln!(f, "{0:1$}if ({2}) {3:.1$}", "", indent, cond, body),
+            Statement::If(ref cond, ref body, None) => {
+                writeln!(f, "{0:1$}if ({2})", "", indent, cond)?;
+                writeln!(f, "{0:.1$}", body, indent + 4)
+            }
+            Statement::If(ref cond, ref body, Some(ref fbody)) => {
+                if body.is_block() {
+                    write!(f, "{0:1$}if ({2}) {3:.1$} ", "", indent, cond, body)?;
+                } else {
+                    writeln!(f, "{0:1$}if ({2})", "", indent, cond)?;
+                    writeln!(f, "{0:.1$}", body, indent + 4)?;
+                }
+                if fbody.is_block() {
+                    writeln!(f, "else {0:.1$}", fbody, indent)?;
+                } else {
+                    writeln!(f, "else")?;
+                    writeln!(f, "{0:.1$}", fbody, indent + 4)?;
+                }
+                Ok(())
+            }
+            Statement::While(ref cond, box Statement::Noop) =>
+                writeln!(f, "{0:1$}while ({2});", "", indent, cond),
+            Statement::While(ref cond, ref body) if body.is_block() =>
+                writeln!(f, "{0:1$}while ({2}) {3:.1$}", "", indent, cond, body),
+            Statement::While(ref cond, ref body) => {
+                writeln!(f, "{0:1$}while ({2})", "", indent, cond)?;
+                writeln!(f, "{0:.1$}", body, indent)
+            }
+            Statement::Until(ref cond, box Statement::Noop) =>
+                writeln!(f, "{0:1$}until ({2});", "", indent, cond),
+            Statement::Until(ref cond, ref body) if body.is_block() =>
+                writeln!(f, "{0:1$}until ({2}) {3:.1$}", "", indent, cond, body),
+            Statement::Until(ref cond, ref body) => {
+                writeln!(f, "{0:1$}until ({2})", "", indent, cond)?;
+                writeln!(f, "{0:.1$}", body, indent)
+            }
+            Statement::DoUntil(box Statement::Noop, ref cond) =>
+                writeln!(f, "{0:1$}do; until ({2});", "", indent, cond),
+            Statement::DoUntil(ref body, ref cond) if body.is_block() =>
+                writeln!(f, "{0:1$}do {3:.1$} until ({2})", "", indent, cond, body),
+            Statement::DoUntil(ref body, ref cond) => {
+                writeln!(f, "{0:1$}do", "", indent)?;
+                writeln!(f, "{0:.1$}", body, indent)?;
+                writeln!(f, "{0:1$}until ({2})", "", indent, cond)
             }
             _ => unimplemented!(),
         }

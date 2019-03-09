@@ -56,10 +56,15 @@ impl Compiler {
         if source.gmlpp().exists() {
             println!("Compiling source: {:?}", source);
             let file = File::open(source.gmlpp())?;
-            let ast = AST::from_reader(file);
-            let mut outfile = File::create(source.gml())?;
-            write!(outfile, "{:?}", ast)?;
-            eprintln!("{:?}", ast);
+            match AST::from_reader(file) {
+                Ok(ast) => {
+                    let mut outfile = File::create(source.gml())?;
+                    write!(outfile, "{}", ast.print())?;
+                }
+                Err(error) => {
+                    eprintln!("Error parsing file '{}': {:?}", source.gmlpp().to_string_lossy(), error);
+                }
+            }
             // do compile
         }
         Ok(())
